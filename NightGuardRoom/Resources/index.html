@@ -5,31 +5,40 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
 <title>夜半守舍</title>
 <style>
-  :root{ --top: env(safe-area-inset-top); --bottom: env(safe-area-inset-bottom); --left: env(safe-area-inset-left); --right: env(safe-area-inset-right); }
+  :root{ --top: env(safe-area-inset-top, 0px); --bottom: env(safe-area-inset-bottom, 0px); --left: env(safe-area-inset-left, 0px); --right: env(safe-area-inset-right, 0px); --hud-top: calc(var(--top) + 8px); --controls-bottom: calc(var(--bottom) + 10px); }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; touch-action:manipulation; }
   html,body{ margin:0; width:100%; height:100%; overflow:hidden; background:#070b16; color:#f8e8bd; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif; overscroll-behavior:none; }
   #app{ position:fixed; inset:0; padding:var(--top) var(--right) var(--bottom) var(--left); background:radial-gradient(circle at 50% 12%,#18213d 0%,#070b16 58%,#03050b 100%); }
   #game{ width:100%; height:100%; display:block; }
-  #ui{ position:absolute; inset:var(--top) var(--right) var(--bottom) var(--left); pointer-events:none; }
-  .panel{ position:absolute; left:10px; right:10px; border:1px solid rgba(255,210,125,.18); background:rgba(10,16,32,.76); box-shadow:0 12px 36px rgba(0,0,0,.35); backdrop-filter:blur(8px); border-radius:18px; }
-  #topBar{ top:8px; height:62px; display:flex; align-items:center; justify-content:space-around; gap:6px; padding:7px 8px; font-size:13px; }
-  .stat{ min-width:64px; text-align:center; line-height:1.25; }
-  .stat b{ display:block; color:#fff1c8; font-size:15px; }
-  #bottomBar{ bottom:10px; min-height:174px; padding:10px; display:grid; grid-template-columns:repeat(3,1fr); gap:8px; pointer-events:auto; }
-  button{ min-height:50px; border:1px solid rgba(255,210,125,.25); border-radius:14px; background:linear-gradient(180deg,#34415f,#1a243d); color:#ffeec7; font-weight:700; font-size:13px; box-shadow:0 6px 0 rgba(0,0,0,.22); }
-  button small{ display:block; margin-top:2px; color:#c9d4ef; font-size:10px; font-weight:600; }
-  button:active{ transform:translateY(2px) scale(.98); box-shadow:0 2px 0 rgba(0,0,0,.25); }
-  button:disabled{ opacity:.38; filter:grayscale(.5); }
+  #ui{ position:absolute; inset:0; padding:var(--top) var(--right) var(--bottom) var(--left); pointer-events:none; }
+  .panel{ position:absolute; left:max(10px,var(--left)); right:max(10px,var(--right)); border:1px solid rgba(255,210,125,.18); background:rgba(10,16,32,.78); box-shadow:0 12px 36px rgba(0,0,0,.36); backdrop-filter:blur(10px); border-radius:18px; }
+  #topBar{ top:var(--hud-top); min-height:56px; display:flex; align-items:center; justify-content:space-around; gap:5px; padding:6px 8px; font-size:12px; }
+  .stat{ min-width:54px; text-align:center; line-height:1.18; }
+  .stat b{ display:block; color:#fff1c8; font-size:14px; }
+  #bottomBar{ bottom:var(--controls-bottom); padding:8px; display:flex; flex-direction:column; gap:7px; pointer-events:auto; }
+  .command-primary{ display:grid; grid-template-columns:1.08fr 1.08fr 1fr; gap:7px; }
+  .command-secondary{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; }
+  .command-system{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; }
+  .drawer{ max-height:0; overflow:hidden; opacity:0; transform:translateY(6px); transition:max-height .18s ease, opacity .18s ease, transform .18s ease; }
+  .drawer.open{ max-height:118px; opacity:1; transform:translateY(0); }
+  button{ min-height:46px; border:1px solid rgba(255,210,125,.28); border-radius:14px; background:linear-gradient(180deg,#34415f,#1a243d); color:#ffeec7; font-weight:800; font-size:12px; box-shadow:0 5px 0 rgba(0,0,0,.24); padding:5px 4px; }
+  button small{ display:block; margin-top:2px; color:#d8e2ff; font-size:10px; font-weight:700; line-height:1.05; }
+  button:active{ transform:translateY(2px) scale(.985); box-shadow:0 2px 0 rgba(0,0,0,.25); }
+  button:disabled,button[aria-disabled="true"]{ opacity:.72; filter:saturate(.78); background:linear-gradient(180deg,#27304a,#151c30); color:#cdd6ee; border-color:rgba(210,220,255,.22); }
+  button:disabled small,button[aria-disabled="true"] small{ color:#ffcf8f; }
+  .primary{ background:linear-gradient(180deg,#d79a42,#87542d); border-color:#ffd083; color:#1b1007; }
+  .recommended{ outline:2px solid rgba(255,226,146,.88); box-shadow:0 0 16px rgba(255,210,90,.35),0 5px 0 rgba(0,0,0,.24); }
   .danger{ animation:pulseRed .55s infinite alternate; }
   @keyframes pulseRed{ from{ box-shadow:0 0 0 rgba(255,60,70,0); } to{ box-shadow:0 0 22px rgba(255,60,70,.85); border-color:#ff5566; } }
-  #overlay{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:22px; pointer-events:auto; }
+  #overlay{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:calc(var(--top) + 22px) 22px calc(var(--bottom) + 22px); pointer-events:auto; }
   .card{ width:min(92vw,390px); border:1px solid rgba(255,210,125,.28); background:linear-gradient(180deg,rgba(18,27,52,.96),rgba(8,12,24,.96)); border-radius:26px; padding:22px 18px; text-align:center; box-shadow:0 30px 90px rgba(0,0,0,.6); }
   h1{ margin:4px 0 8px; font-size:36px; letter-spacing:4px; color:#ffe6a3; text-shadow:0 0 18px rgba(255,200,80,.25); }
   h2{ margin:6px 0 10px; font-size:28px; color:#ffe6a3; }
   p{ color:#cfd7ee; line-height:1.5; margin:8px 0 16px; }
   .big{ min-height:56px; padding:0 20px; font-size:17px; background:linear-gradient(180deg,#d79a42,#85542c); border-color:#ffd083; color:#1b1007; }
-  .hint{ position:absolute; left:18px; right:18px; top:82px; text-align:center; color:#ffe6a3; font-weight:800; text-shadow:0 2px 8px #000; pointer-events:none; }
+  .hint{ position:absolute; left:18px; right:18px; top:calc(var(--hud-top) + 62px); min-height:22px; text-align:center; color:#ffe6a3; font-weight:800; text-shadow:0 2px 8px #000; pointer-events:none; }
   #rotate{ display:none; position:fixed; inset:0; z-index:10; background:#070b16; color:#ffe6a3; align-items:center; justify-content:center; text-align:center; padding:30px; font-size:22px; }
+  @media (max-height:760px){ #topBar{min-height:50px}.stat b{font-size:13px} button{min-height:42px;font-size:11px}.command-secondary,.command-system{gap:5px} }
   @media (orientation:landscape){ #rotate{display:flex;} }
 </style>
 </head>
@@ -80,7 +89,7 @@ function saveStats(win){ const s=JSON.parse(localStorage.getItem('nightGuardStat
 
 class Game{
  constructor(){ this.state='TITLE'; this.reset(); }
- reset(){ this.t=0; this.coin=30; this.wood=0; this.bed=0; this.door=0; this.doorHp=CFG.door[0].hp; this.room=-1; this.monsters=[]; this.bullets=[]; this.fx=[]; this.towers=[]; this.spawnCd=5; this.incomeTick=0; this.repairCd=0; this.kills=0; this.warn=0; this.notice=''; this.noticeT=0; this.paused=false; this.roomPickT=0; }
+ reset(){ this.t=0; this.coin=30; this.wood=0; this.bed=0; this.door=0; this.doorHp=CFG.door[0].hp; this.room=-1; this.monsters=[]; this.bullets=[]; this.fx=[]; this.towers=[]; this.spawnCd=5; this.incomeTick=0; this.repairCd=0; this.kills=0; this.warn=0; this.notice=''; this.noticeT=0; this.paused=false; this.roomPickT=0; this.drawerOpen=false; this.confirmRestart=false; }
  start(){ initAudio(); this.reset(); this.state='ROOM_SELECT'; this.notice='选择一间屋子，开始守夜'; this.noticeT=2; beep(520,.06,'triangle'); updateUI(); }
  choose(i){ this.room=i; this.state='PLAYING'; this.t=0; this.spawnCd=6; this.notice='先升级铺位，再加固房门'; this.noticeT=3; beep(660,.08,'triangle'); updateUI(); }
  get r(){ return rooms[this.room]; }
@@ -116,28 +125,49 @@ class Game{
  updateBullets(dt){ for(const b of this.bullets) b.life-=dt; this.bullets=this.bullets.filter(b=>b.life>0); }
 }
 const game=new Game(); window.game=game;
-function btn(label,sub,fn,dis=false,cls=''){ return `<button class="${cls}" ${dis?'disabled':''} data-act="${fn}">${label}<small>${sub||''}</small></button>`; }
 function cost(c,w){ return `${c?c+'铜 ':''}${w?w+'木':''}`.trim()||'满级'; }
+function shortage(c=0,w=0){ const parts=[]; if(game.coin<c) parts.push(`缺 ${Math.ceil(c-game.coin)}铜`); if(game.wood<w) parts.push(`缺 ${w-game.wood}木`); return parts.join(' ') || ''; }
+function disabledReason(c=0,w=0,extra=''){ return extra || shortage(c,w); }
+function btn(label,sub,fn,dis=false,cls='',reason=''){
+ const disabledAttr=dis?'disabled aria-disabled="true"':'';
+ const small=dis&&reason?reason:(sub||'');
+ return `<button class="${cls}" ${disabledAttr} data-act="${fn}">${label}<small>${small}</small></button>`;
+}
+function recommendedAction(bn,dn,hpPct){ if(hpPct<.35 && game.wood>=CFG.repair.wood) return 'repair'; if(bn && game.canPay(bn.c,0)) return 'bed'; if(dn && game.canPay(dn.coin,dn.wood)) return 'door'; if(game.towers.length<2 && game.canPay(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0])) return 'moreBuild'; return 'moreBuild'; }
+function towerUpgradeText(){ if(!game.towers.length)return '无设施'; let tw=game.towers.reduce((a,b)=>a.lv<=b.lv?a:b); if(tw.lv>=3)return '已满级'; const cf=CFG.towers[tw.type]; return `${cf.name} ${cost(cf.coin[tw.lv+1],cf.wood[tw.lv+1])}`; }
+function towerUpgradeDisabledReason(){ if(!game.towers.length)return '先建防御'; let tw=game.towers.reduce((a,b)=>a.lv<=b.lv?a:b); if(tw.lv>=3)return '已满级'; const cf=CFG.towers[tw.type], nl=tw.lv+1; return shortage(cf.coin[nl],cf.wood[nl]); }
 function updateUI(){ const hpMax=CFG.door[game.door].hp, hpPct=game.doorHp/hpMax; topBar.innerHTML=`<div class="stat">时间<b>${fmtTime(Math.max(0,CFG.duration-game.t))}</b></div><div class="stat">铜钱<b>${Math.floor(game.coin)}</b></div><div class="stat">木料<b>${game.wood}</b></div><div class="stat">门<b>${Math.ceil(game.doorHp)}/${hpMax}</b></div>`; topBar.classList.toggle('danger', game.state==='PLAYING' && hpPct<.28);
  if(game.state==='PLAYING'){
-  const bn=game.bedNext(), dn=game.doorNext(); bottomBar.style.display='grid'; bottomBar.innerHTML=[
-   btn('升级铺位', bn?`Lv${game.bed+1}→${game.bed+2} ${cost(bn.c,0)}`:'已满级','bed', !bn||!game.canPay(bn.c,0)),
-   btn('加固房门', dn?`Lv${game.door+1}→${game.door+2} ${cost(dn.coin,dn.wood)}`:'已满级','door', !dn||!game.canPay(dn.coin,dn.wood)),
-   btn('维修房门', game.repairCd>0?`${game.repairCd.toFixed(0)}s`:`${CFG.repair.wood}木`,'repair', game.repairCd>0||!game.canPay(0,CFG.repair.wood), hpPct<.35?'danger':''),
-   btn('建竹弩', cost(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0]),'bolt', game.towers.length>=3||!game.canPay(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0])),
-   btn('建火盆', cost(CFG.towers.brazier.coin[0],CFG.towers.brazier.wood[0]),'brazier', game.towers.length>=3||!game.canPay(CFG.towers.brazier.coin[0],CFG.towers.brazier.wood[0])),
-   btn('建铜铃', cost(CFG.towers.bell.coin[0],CFG.towers.bell.wood[0]),'bell', game.towers.length>=3||!game.canPay(CFG.towers.bell.coin[0],CFG.towers.bell.wood[0])),
-   btn('升级设施', (()=>{if(!game.towers.length)return '无设施'; let tw=game.towers.reduce((a,b)=>a.lv<=b.lv?a:b); if(tw.lv>=3)return '已满级'; const cf=CFG.towers[tw.type]; return `${cf.name} ${cost(cf.coin[tw.lv+1],cf.wood[tw.lv+1])}`})(),'towerUp', !game.towers.length),
-   btn(game.paused?'继续':'暂停', '守夜中','pause'),
-   btn('重开', '重新开始','restart')
-  ].join('');
+  const bn=game.bedNext(), dn=game.doorNext(), rec=recommendedAction(bn,dn,hpPct);
+  const repairBlocked = game.repairCd>0 || !game.canPay(0,CFG.repair.wood);
+  bottomBar.style.display='flex';
+  const bedReason=bn?disabledReason(bn.c,0):'已满级', doorReason=dn?disabledReason(dn.coin,dn.wood):'已满级';
+  const repairReason=game.repairCd>0?`${game.repairCd.toFixed(0)}秒后可修`:disabledReason(0,CFG.repair.wood);
+  const restartLabel=game.confirmRestart?'确认重开':'重开';
+  bottomBar.innerHTML=`<div class="command-primary">${[
+   btn('升级铺位', bn?`Lv${game.bed+1}→${game.bed+2} ${cost(bn.c,0)}`:'已满级','bed', !bn||!game.canPay(bn.c,0), rec==='bed'?'primary recommended':'primary', bedReason),
+   btn('加固房门', dn?`Lv${game.door+1}→${game.door+2} ${cost(dn.coin,dn.wood)}`:'已满级','door', !dn||!game.canPay(dn.coin,dn.wood), rec==='door'?'recommended':'', doorReason),
+   btn('维修房门', game.repairCd>0?`${game.repairCd.toFixed(0)}s`:`${CFG.repair.wood}木`,'repair', repairBlocked, hpPct<.35?'danger recommended':'', repairReason)
+  ].join('')}</div><div class="command-secondary">${[
+   btn(game.drawerOpen?'收起建造':'建造防御', game.towers.length>=3?'防御格已满':'弩/火/铃','moreBuild', game.towers.length>=3, rec==='moreBuild'?'recommended':'', '防御格已满'),
+   btn('升级设施', towerUpgradeText(),'towerUp', !game.towers.length || towerUpgradeDisabledReason()==='已满级' || !!towerUpgradeDisabledReason(), '', towerUpgradeDisabledReason()),
+   btn(game.paused?'继续':'暂停', game.paused?'恢复守夜':'守夜中','pause')
+  ].join('')}</div><div class="drawer ${game.drawerOpen?'open':''}"><div class="command-secondary">${[
+   btn('建竹弩', cost(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0]),'bolt', game.towers.length>=3||!game.canPay(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0]),'', game.towers.length>=3?'防御格已满':shortage(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0])),
+   btn('建火盆', cost(CFG.towers.brazier.coin[0],CFG.towers.brazier.wood[0]),'brazier', game.towers.length>=3||!game.canPay(CFG.towers.brazier.coin[0],CFG.towers.brazier.wood[0]),'', game.towers.length>=3?'防御格已满':shortage(CFG.towers.brazier.coin[0],CFG.towers.brazier.wood[0])),
+   btn('建铜铃', cost(CFG.towers.bell.coin[0],CFG.towers.bell.wood[0]),'bell', game.towers.length>=3||!game.canPay(CFG.towers.bell.coin[0],CFG.towers.bell.wood[0]),'', game.towers.length>=3?'防御格已满':shortage(CFG.towers.bell.coin[0],CFG.towers.bell.wood[0]))
+  ].join('')}</div></div><div class="command-system">${[
+   btn('提示', hpPct<.35?'先维修房门':(bn?'优先升级铺位':'补强防御'),'noop'),
+   btn(restartLabel, game.confirmRestart?'再次点击生效':'防误触','restart', false, game.confirmRestart?'danger':''),
+   btn('目标', `${Math.ceil(CFG.duration-game.t)}秒到天亮`,'noop')
+  ].join('')}</div>`;
  } else { bottomBar.style.display='none'; }
  renderOverlay(); }
 function renderOverlay(){ if(game.state==='TITLE'){ overlay.innerHTML=`<div class="card"><h1>夜半守舍</h1><p>进入旧楼，守住房门。休息积攒铜钱，建造防御设施，在夜影破门前坚持到天亮。</p><button class="big" data-act="start">开始守夜</button><p><small>原创 2D 策略塔防生存 · 离线版</small></p></div>`; }
  else if(game.state==='ROOM_SELECT'){ overlay.innerHTML=''; }
  else if(game.state==='WIN'||game.state==='LOSE'){ const win=game.state==='WIN'; overlay.innerHTML=`<div class="card"><h2>${win?'天亮了':'门破了'}</h2><p>${win?'你守住了这间屋子。':'夜色涌入屋内，守夜失败。'}</p><p>生存 ${Math.floor(game.t)} 秒 · 击退 ${game.kills} · 铺位 Lv${game.bed+1} · 房门 Lv${game.door+1}</p><button class="big" data-act="again">再守一夜</button><br><br><button data-act="title">返回标题</button></div>`; }
  else overlay.innerHTML=''; }
-function handleAction(a){ initAudio(); if(audio&&audio.state==='suspended') audio.resume(); if(a==='start') game.start(); else if(a==='again') game.start(); else if(a==='title'){game.state='TITLE'; updateUI();} else if(a==='restart') game.start(); else if(a==='pause'){game.paused=!game.paused; updateUI();} else if(game.state==='PLAYING'){ if(a==='bed') game.upgradeBed(); if(a==='door') game.upgradeDoor(); if(a==='repair') game.repair(); if(['bolt','brazier','bell'].includes(a)) game.build(a); if(a==='towerUp') game.upgradeTower(); } }
+function handleAction(a){ initAudio(); if(audio&&audio.state==='suspended') audio.resume(); if(a==='noop') return; if(a!=='restart') game.confirmRestart=false; if(a==='start') game.start(); else if(a==='again') game.start(); else if(a==='title'){game.state='TITLE'; updateUI();} else if(a==='restart'){ if(game.state==='PLAYING' && !game.confirmRestart){ game.confirmRestart=true; game.notice='再次点击确认重开'; game.noticeT=2; updateUI(); return; } game.start(); } else if(a==='moreBuild'){ game.drawerOpen=!game.drawerOpen; updateUI(); } else if(a==='pause'){game.paused=!game.paused; updateUI();} else if(game.state==='PLAYING'){ if(a==='bed') game.upgradeBed(); if(a==='door') game.upgradeDoor(); if(a==='repair') game.repair(); if(['bolt','brazier','bell'].includes(a)){ game.drawerOpen=false; game.build(a); updateUI(); } if(a==='towerUp') game.upgradeTower(); } }
 document.addEventListener('pointerdown',e=>{ const b=e.target.closest('button'); if(b&&b.dataset.act){ e.preventDefault(); handleAction(b.dataset.act); } else if(game.state==='ROOM_SELECT'){ const x=(e.clientX-ox)/scale, y=(e.clientY-oy)/scale; rooms.forEach((r,i)=>{ if(x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h) game.choose(i); }); } },{passive:false});
 
 function drawRoundRect(x,y,w,h,r,fill,stroke){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();} }
