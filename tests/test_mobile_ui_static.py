@@ -1,4 +1,6 @@
 import re
+import subprocess
+import tempfile
 from pathlib import Path
 
 HTML = Path('NightGuardRoom/Resources/index.html').read_text(encoding='utf-8')
@@ -8,38 +10,52 @@ def test_viewport_and_safe_area_are_enabled():
     assert 'viewport-fit=cover' in HTML
     for token in ['safe-area-inset-top', 'safe-area-inset-bottom', 'safe-area-inset-left', 'safe-area-inset-right']:
         assert token in HTML
-    assert '--hud-top' in HTML
+    assert '--hud-top:64px' in HTML
     assert '--controls-bottom' in HTML
+
+
+def test_strict_reference_canvas_and_sections():
+    for token in ['BASE_W = 430', 'BASE_H = 932', 'width:430px', 'height:932px']:
+        assert token in HTML
+    for token in ['left:18px; top:64px; width:394px; height:72px', 'left:14px; top:742px; width:402px; height:178px', 'x:185,y:145,w:60,h:585']:
+        assert token in HTML
 
 
 def test_bottom_controls_are_fixed_three_by_three_grid():
     assert '#bottomBar' in HTML
-    assert 'command-grid' in HTML
-    assert 'grid-template-columns:repeat(3,1fr)' in HTML
-    assert 'grid-template-rows:repeat(3,minmax' in HTML
+    assert 'grid-template-columns:repeat(3,124px)' in HTML
+    assert 'grid-template-rows:repeat(3,50px)' in HTML
     for label in ['升级床位', '加固房门', '维修房门', '建造防御', '升级设施', '暂停', '提示', '重开', '目标']:
         assert label in HTML
     assert 'buildDefense' in HTML
 
 
 def test_top_status_bar_has_four_blocks_and_original_labels():
-    assert '#topBar{ top:var(--hud-top); left:4%; right:4%;' in HTML
+    assert '#topBar{ left:18px; top:64px; width:394px; height:72px' in HTML
     assert 'grid-template-columns:repeat(4,1fr)' in HTML
     for label in ['时间', '铜钱', '木料', '门']:
         assert label in HTML
 
 
-def test_disabled_actions_show_shortage_reason():
+def test_strict_room_and_player_layout_markers_present():
+    for token in ['{x:28,y:172,w:142,h:134', '{x:28,y:356,w:142,h:134', '{x:28,y:540,w:142,h:134', '{x:260,y:172,w:142,h:134', '{x:260,y:356,w:142,h:134', '{x:260,y:540,w:142,h:134']:
+        assert token in HTML
+    for token in ['drawRoundRect(278,552,92,8,4', 'drawRoundRect(334,582,52,36,8', 'ctx.arc(342,638,15', '{x:296,y:r.y+48}', '{x:296,y:r.y+84}', '{x:296,y:r.y+120}']:
+        assert token in HTML
+
+
+def test_disabled_actions_show_shortage_reason_and_float_tip():
     assert 'function shortage' in HTML
     assert '缺' in HTML
     assert 'aria-disabled' in HTML
-    assert 'disabledReason' in HTML
+    assert 'showFloatTip' in HTML
+    assert 'float-tip' in HTML
 
 
 def test_restart_requires_confirmation():
     assert 'confirmRestart' in HTML
     assert '确认重开' in HTML
-    assert "game.confirmRestart" in HTML
+    assert 'game.confirmRestart' in HTML
 
 
 def test_no_in_game_floating_arrow_or_scroll_button():
@@ -54,7 +70,7 @@ def test_core_gameplay_still_present():
 
 
 def test_room_corridor_visual_markers_present():
-    for token in ['#172039', '#1B2745', '#1E1C2D', '#2A263D', '#A66A2D', '#C2873C', '#64F090', '#FF4D5D']:
+    for token in ['#17213A', '#202A45', '#201D31', '#313B59', '#6FA8FF', '#B57431', '#64F090', '#FF4D5D']:
         assert token in HTML
     assert 'doorShake' in HTML
     assert 'bedGlow' in HTML
@@ -69,7 +85,7 @@ def test_html_has_single_script_and_canvas():
 
 def test_overlay_does_not_block_in_game_bottom_controls():
     assert '#ui{ position:absolute; inset:0;' in HTML
-    assert '#bottomBar{ bottom:var(--controls-bottom);' in HTML
+    assert '#bottomBar{ left:14px; top:742px;' in HTML
     assert 'pointer-events:auto' in re.search(r'#bottomBar\{[^}]+\}', HTML).group(0)
     overlay_css = re.search(r'#overlay\{[^}]+\}', HTML).group(0)
     card_css = re.search(r'\.card\{[^}]+\}', HTML).group(0)
@@ -78,7 +94,6 @@ def test_overlay_does_not_block_in_game_bottom_controls():
 
 
 def test_inline_javascript_parses_with_node():
-    import subprocess, tempfile
     script = re.search(r'<script>(.*)</script>', HTML, re.S).group(1)
     with tempfile.NamedTemporaryFile('w', suffix='.js', delete=False) as f:
         f.write(script)

@@ -5,63 +5,71 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
 <title>夜半守舍</title>
 <style>
-  :root{ --top: env(safe-area-inset-top, 0px); --bottom: env(safe-area-inset-bottom, 0px); --left: env(safe-area-inset-left, 0px); --right: env(safe-area-inset-right, 0px); --hud-top: calc(var(--top) + 8px); --controls-bottom: calc(var(--bottom) + 10px); }
+  :root{ --top: env(safe-area-inset-top, 0px); --bottom: env(safe-area-inset-bottom, 0px); --left: env(safe-area-inset-left, 0px); --right: env(safe-area-inset-right, 0px); --hud-top:64px; --controls-bottom:12px; }
   *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; -webkit-touch-callout:none; -webkit-user-select:none; user-select:none; touch-action:manipulation; }
-  html,body{ margin:0; width:100%; height:100%; overflow:hidden; background:#070b16; color:#f8e8bd; font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Helvetica Neue",Arial,sans-serif; overscroll-behavior:none; }
-  #app{ position:fixed; inset:0; padding:var(--top) var(--right) var(--bottom) var(--left); background:radial-gradient(circle at 50% 12%,#18213d 0%,#070b16 58%,#03050b 100%); }
-  #game{ width:100%; height:100%; display:block; }
-  #ui{ position:absolute; inset:0; padding:var(--top) var(--right) var(--bottom) var(--left); pointer-events:none; }
-  .panel{ position:absolute; border:1px solid rgba(78,92,127,.78); background:rgba(17,23,42,.76); box-shadow:0 14px 38px rgba(0,0,0,.42), inset 0 1px 0 rgba(255,255,255,.06); backdrop-filter:blur(12px); border-radius:20px; }
-  #topBar{ top:var(--hud-top); left:4%; right:4%; min-height:62px; display:grid; grid-template-columns:repeat(4,1fr); gap:0; padding:7px 8px; font-size:12px; }
-  .stat{ min-width:0; text-align:center; line-height:1.12; color:#d8d3c6; display:flex; flex-direction:column; justify-content:center; border-right:1px solid rgba(78,92,127,.45); }
+  html,body{ margin:0; width:100%; height:100%; overflow:hidden; background:#050814; color:#f8e8bd; font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","SF Pro Display","Helvetica Neue",Arial,sans-serif; overscroll-behavior:none; }
+  #app{ position:fixed; inset:0; padding:var(--top) var(--right) var(--bottom) var(--left); display:flex; align-items:center; justify-content:center; background:#050814; }
+  #stage{ position:relative; width:430px; height:932px; flex:0 0 auto; transform-origin:center center; background:#050814; overflow:hidden; }
+  #game{ position:absolute; inset:0; width:430px; height:932px; display:block; background:#050814; }
+  #ui{ position:absolute; inset:0; width:430px; height:932px; pointer-events:none; }
+  .panel{ position:absolute; border-style:solid; backdrop-filter:blur(10px); }
+  #topBar{ left:18px; top:64px; width:394px; height:72px; display:grid; grid-template-columns:repeat(4,1fr); border-radius:18px; border-width:1px; border-color:#34405D; background:#12182B; overflow:hidden; box-shadow:0 10px 24px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.05); }
+  .stat{ min-width:0; height:72px; text-align:center; display:flex; flex-direction:column; align-items:center; justify-content:center; border-right:1px solid #28324C; color:#D8D3C6; font-size:13px; line-height:1.1; }
   .stat:last-child{ border-right:0; }
-  .stat b{ display:block; color:#fff; font-size:18px; font-weight:900; letter-spacing:.3px; margin-top:4px; text-shadow:0 0 10px rgba(110,165,255,.22); }
-  #bottomBar{ bottom:var(--controls-bottom); left:2.5%; right:2.5%; padding:9px; pointer-events:auto; }
-  .command-grid{ display:grid; grid-template-columns:repeat(3,1fr); grid-template-rows:repeat(3,minmax(45px,1fr)); gap:8px; }
-  button{ min-height:45px; border:1px solid rgba(112,132,175,.8); border-radius:14px; background:linear-gradient(180deg,#263653,#1c2945); color:#fff; font-weight:850; font-size:12px; box-shadow:0 5px 0 rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.08); padding:5px 4px; }
-  button small{ display:block; margin-top:2px; color:#d8d3c6; font-size:10px; font-weight:750; line-height:1.05; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  button:active{ transform:scale(.96); box-shadow:0 2px 0 rgba(0,0,0,.28); }
-  button:disabled,button[aria-disabled="true"]{ opacity:.58; filter:saturate(.72); background:linear-gradient(180deg,#202742,#151b2f); color:#798096; border-color:rgba(78,92,127,.45); }
-  button:disabled small,button[aria-disabled="true"] small{ color:#798096; }
-  .primary{ background:linear-gradient(180deg,#ffd16a,#d8952f); border-color:#ffe2a0; color:#201207; }
-  .primary small{ color:#462a0c; }
-  .recommended{ outline:2px solid rgba(255,209,106,.95); box-shadow:0 0 18px rgba(255,209,106,.42),0 5px 0 rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.12); }
-  .danger{ animation:pulseRed .55s infinite alternate; }
-  @keyframes pulseRed{ from{ box-shadow:0 0 0 rgba(255,60,70,0); } to{ box-shadow:0 0 22px rgba(255,60,70,.85); border-color:#ff5566; } }
-  #overlay{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:calc(var(--top) + 22px) 22px calc(var(--bottom) + 22px); pointer-events:none; }
-  .card{ width:min(92vw,390px); border:1px solid rgba(255,210,125,.28); background:linear-gradient(180deg,rgba(18,27,52,.96),rgba(8,12,24,.96)); border-radius:26px; padding:22px 18px; text-align:center; box-shadow:0 30px 90px rgba(0,0,0,.6); pointer-events:auto; }
-  h1{ margin:4px 0 8px; font-size:36px; letter-spacing:4px; color:#ffe6a3; text-shadow:0 0 18px rgba(255,200,80,.25); }
-  h2{ margin:6px 0 10px; font-size:28px; color:#ffe6a3; }
-  p{ color:#cfd7ee; line-height:1.5; margin:8px 0 16px; }
-  .big{ min-height:56px; padding:0 20px; font-size:17px; background:linear-gradient(180deg,#d79a42,#85542c); border-color:#ffd083; color:#1b1007; }
-  .hint{ position:absolute; left:18px; right:18px; top:calc(var(--hud-top) + 62px); min-height:22px; text-align:center; color:#ffe6a3; font-weight:800; text-shadow:0 2px 8px #000; pointer-events:none; }
+  .stat b{ display:block; margin-top:7px; color:#FFFFFF; font-size:22px; font-weight:950; letter-spacing:.2px; line-height:1; }
+  .stat.low b{ color:#FF4D5D; text-shadow:0 0 12px rgba(255,77,93,.55); }
+  .stat.pulse b{ animation:numberPop .24s ease-out; }
+  #hint{ position:absolute; left:42px; top:138px; width:346px; height:22px; text-align:center; color:#FFD166; font-size:14px; font-weight:800; text-shadow:0 2px 8px #000; pointer-events:none; opacity:.9; }
+  #bottomBar{ left:14px; top:742px; width:402px; height:178px; border-radius:18px; border-width:1px; border-color:#35415F; background:rgba(17,24,39,.96); box-shadow:0 -12px 28px rgba(0,0,0,.36), inset 0 1px 0 rgba(255,255,255,.05); pointer-events:auto; }
+  .command-grid{ position:absolute; left:10px; top:14px; display:grid; grid-template-columns:repeat(3,124px); grid-template-rows:repeat(3,50px); column-gap:10px; row-gap:8px; }
+  button{ width:124px; height:50px; border:1px solid #53607C; border-radius:12px; background:linear-gradient(180deg,#1B2946,#263653); color:#FFFFFF; font-weight:900; font-size:14px; line-height:1.05; box-shadow:0 4px 0 rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08); padding:5px 4px 4px; }
+  button small{ display:block; margin-top:5px; color:#D8D3C6; font-size:12px; font-weight:760; line-height:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  button:active{ transform:translateY(2px); box-shadow:0 2px 0 rgba(0,0,0,.30); }
+  button.disabled,button[aria-disabled="true"]{ background:#151A2A; color:#70778B; border-color:#2A3148; box-shadow:0 3px 0 rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.035); }
+  button.disabled small,button[aria-disabled="true"] small{ color:#70778B; }
+  button.primary{ background:linear-gradient(180deg,#D8952F,#FFD16A); border-color:#FFE29B; color:#241507; box-shadow:0 0 18px rgba(255,209,106,.42),0 4px 0 rgba(86,50,8,.45), inset 0 1px 0 rgba(255,255,255,.24); }
+  button.primary small{ color:#4E2F10; }
+  button.danger{ border-color:#FF6977; box-shadow:0 0 18px rgba(255,77,93,.36),0 4px 0 rgba(0,0,0,.28); }
+  #floatTips{ position:absolute; inset:0; pointer-events:none; overflow:hidden; }
+  .float-tip{ position:absolute; transform:translate(-50%,0); color:#FFD166; font-size:18px; font-weight:950; text-shadow:0 2px 8px #000; animation:floatTip .8s ease-out forwards; white-space:nowrap; }
+  @keyframes floatTip{ 0%{ opacity:0; transform:translate(-50%,8px) scale(.94); } 18%{ opacity:1; } 100%{ opacity:0; transform:translate(-50%,-28px) scale(1.02); } }
+  @keyframes numberPop{ 0%{transform:scale(1)} 50%{transform:scale(1.14); color:#FFD16A} 100%{transform:scale(1)} }
+  #overlay{ position:absolute; inset:0; display:flex; align-items:center; justify-content:center; padding:90px 24px 210px; pointer-events:none; }
+  .card{ width:360px; border:1px solid rgba(255,210,125,.30); background:linear-gradient(180deg,rgba(18,27,52,.97),rgba(8,12,24,.97)); border-radius:26px; padding:24px 20px; text-align:center; box-shadow:0 30px 90px rgba(0,0,0,.62); pointer-events:auto; }
+  h1{ margin:4px 0 10px; font-size:36px; letter-spacing:4px; color:#FFE6A3; text-shadow:0 0 18px rgba(255,200,80,.22); }
+  h2{ margin:6px 0 10px; font-size:28px; color:#FFE6A3; }
+  p{ color:#CFD7EE; line-height:1.5; margin:9px 0 16px; }
+  .big{ width:220px; height:58px; font-size:17px; background:linear-gradient(180deg,#D8952F,#FFD16A); border-color:#FFE29B; color:#241507; }
   #rotate{ display:none; position:fixed; inset:0; z-index:10; background:#070b16; color:#ffe6a3; align-items:center; justify-content:center; text-align:center; padding:30px; font-size:22px; }
-  @media (max-height:760px){ #topBar{min-height:56px}.stat b{font-size:16px} #bottomBar{padding:7px}.command-grid{gap:6px;grid-template-rows:repeat(3,minmax(41px,1fr))} button{min-height:41px;font-size:11px} button small{font-size:9px} }
   @media (orientation:landscape){ #rotate{display:flex;} }
 </style>
 </head>
 <body>
 <div id="app">
-  <canvas id="game"></canvas>
-  <div id="ui">
-    <div id="topBar" class="panel"></div>
-    <div id="hint" class="hint"></div>
-    <div id="bottomBar" class="panel"></div>
-    <div id="overlay"></div>
+  <div id="stage">
+    <canvas id="game" width="430" height="932"></canvas>
+    <div id="ui">
+      <div id="topBar" class="panel"></div>
+      <div id="hint"></div>
+      <div id="bottomBar" class="panel"></div>
+      <div id="floatTips"></div>
+      <div id="overlay"></div>
+    </div>
   </div>
 </div>
 <div id="rotate">请竖屏游玩<br><small>转回 iPhone 竖屏后继续守夜</small></div>
 <script>
 (() => {
 'use strict';
-const BASE_W = 390, BASE_H = 844;
+const BASE_W = 430, BASE_H = 932;
 const canvas = document.getElementById('game'), ctx = canvas.getContext('2d');
-const topBar = document.getElementById('topBar'), bottomBar = document.getElementById('bottomBar'), overlay = document.getElementById('overlay'), hint = document.getElementById('hint');
-let scale=1, ox=0, oy=0, dpr=1, last=0;
+const stage = document.getElementById('stage');
+const topBar = document.getElementById('topBar'), bottomBar = document.getElementById('bottomBar'), overlay = document.getElementById('overlay'), hint = document.getElementById('hint'), floatTips = document.getElementById('floatTips');
+let scale=1, last=0;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
 const fmtTime=s=>`${String(Math.floor(s/60)).padStart(2,'0')}:${String(Math.floor(s%60)).padStart(2,'0')}`;
-function resize(){ dpr=Math.min(window.devicePixelRatio||1,3); canvas.width=Math.floor(innerWidth*dpr); canvas.height=Math.floor(innerHeight*dpr); canvas.style.width=innerWidth+'px'; canvas.style.height=innerHeight+'px'; const sw=innerWidth/BASE_W, sh=innerHeight/BASE_H; scale=Math.min(sw,sh); ox=(innerWidth-BASE_W*scale)/2; oy=(innerHeight-BASE_H*scale)/2; ctx.setTransform(dpr*scale,0,0,dpr*scale,dpr*ox,dpr*oy); }
+function resize(){ const sw=(innerWidth-0)/BASE_W, sh=(innerHeight-0)/BASE_H; scale=Math.min(sw,sh); stage.style.transform=`scale(${scale})`; }
 window.addEventListener('resize',resize,{passive:true}); resize();
 
 const CFG={
@@ -74,48 +82,53 @@ const CFG={
   brazier:{name:'火盆',coin:[80,180,380,760],wood:[3,6,12,20],dps:[8,15,26,42],range:[70,78,86,95]},
   bell:{name:'铜铃阵',coin:[65,150,320,680],wood:[2,5,9,16],slow:[.18,.25,.32,.40],range:[90,100,110,120],dps:[0,2,5,9]}
  },
- enemies:{shade:{n:'夜影',hp:70,spd:36,atk:10,wood:1,col:'#3f4566'},heavy:{n:'重影',hp:190,spd:24,atk:24,wood:2,col:'#553b72'},split:{n:'裂影',hp:120,spd:58,atk:16,wood:2,col:'#305477'},frenzy:{n:'狂影',hp:260,spd:48,atk:34,wood:3,col:'#8e2f45'}}
+ enemies:{shade:{n:'夜影',hp:70,spd:42,atk:10,wood:1,col:'#697098'},heavy:{n:'重影',hp:190,spd:28,atk:24,wood:2,col:'#6B78A8'},split:{n:'裂影',hp:120,spd:58,atk:16,wood:2,col:'#667BA8'},frenzy:{n:'狂影',hp:260,spd:52,atk:34,wood:3,col:'#8A5F78'}}
 };
-const rooms=[{x:24,y:100,w:120,h:120,side:'L'},{x:246,y:100,w:120,h:120,side:'R'},{x:24,y:260,w:120,h:120,side:'L'},{x:246,y:260,w:120,h:120,side:'R'},{x:24,y:420,w:120,h:120,side:'L'},{x:246,y:420,w:120,h:120,side:'R'}];
-function doorPos(r){return r.side==='L'?{x:r.x+r.w,y:r.y+r.h/2}:{x:r.x,y:r.y+r.h/2};}
-function slots(r){const sx=r.side==='L'?r.x+r.w-32:r.x+32; return [{x:sx,y:r.y+32},{x:sx,y:r.y+62},{x:sx,y:r.y+92}];}
+const rooms=[
+ {x:28,y:172,w:142,h:134,side:'L'}, {x:28,y:356,w:142,h:134,side:'L'}, {x:28,y:540,w:142,h:134,side:'L'},
+ {x:260,y:172,w:142,h:134,side:'R'}, {x:260,y:356,w:142,h:134,side:'R'}, {x:260,y:540,w:142,h:134,side:'R'}
+];
+function doorRect(r){ return r.side==='L'?{x:r.x+r.w-8,y:r.y+36,w:14,h:72}:{x:r.x-6,y:r.y+36,w:14,h:72}; }
+function doorPos(r){ const d=doorRect(r); return r.side==='R'?{x:248,y:r.y+66}:{x:182,y:r.y+66}; }
+function slots(r){ return r.side==='R'?[{x:296,y:r.y+48},{x:296,y:r.y+84},{x:296,y:r.y+120}]:[{x:r.x+r.w-36,y:r.y+48},{x:r.x+r.w-36,y:r.y+84},{x:r.x+r.w-36,y:r.y+120}]; }
 let audio=null;
 function initAudio(){ if(audio) return; try{ const AC=window.AudioContext||window.webkitAudioContext; audio=new AC(); }catch(e){ audio=false; } }
 function beep(freq=440,dur=.05,type='sine',gain=.035){ if(!audio) return; const o=audio.createOscillator(), g=audio.createGain(); o.type=type; o.frequency.value=freq; g.gain.value=gain; o.connect(g); g.connect(audio.destination); o.start(); g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+dur); o.stop(audio.currentTime+dur); }
 function vibrate(ms=12){ try{ navigator.vibrate&&navigator.vibrate(ms); }catch(e){} }
-function saveStats(win){ const s=JSON.parse(localStorage.getItem('nightGuardStats')||'{}'); s.gamesPlayed=(s.gamesPlayed||0)+1; s.wins=(s.wins||0)+(win?1:0); s.bestSurviveTime=Math.max(s.bestSurviveTime||0, Math.floor(game.t)); s.bestKills=Math.max(s.bestKills||0, game.kills); localStorage.setItem('nightGuardStats',JSON.stringify(s)); }
+function saveStats(win){ try{ const s=JSON.parse(localStorage.getItem('nightGuardStats')||'{}'); s.gamesPlayed=(s.gamesPlayed||0)+1; s.wins=(s.wins||0)+(win?1:0); s.bestSurviveTime=Math.max(s.bestSurviveTime||0, Math.floor(game.t)); s.bestKills=Math.max(s.bestKills||0, game.kills); localStorage.setItem('nightGuardStats',JSON.stringify(s)); }catch(e){} }
 
 class Game{
  constructor(){ this.state='TITLE'; this.reset(); }
- reset(){ this.t=0; this.coin=30; this.wood=0; this.bed=0; this.door=0; this.doorHp=CFG.door[0].hp; this.room=-1; this.monsters=[]; this.bullets=[]; this.fx=[]; this.towers=[]; this.spawnCd=5; this.incomeTick=0; this.repairCd=0; this.kills=0; this.warn=0; this.notice=''; this.noticeT=0; this.paused=false; this.roomPickT=0; this.drawerOpen=false; this.confirmRestart=false; this.flash=0; this.bedGlow=0; this.doorShake=0; }
- start(){ initAudio(); this.reset(); this.state='ROOM_SELECT'; this.notice='选择一间屋子，开始守夜'; this.noticeT=2; beep(520,.06,'triangle'); updateUI(); }
- choose(i){ this.room=i; this.state='PLAYING'; this.t=0; this.spawnCd=6; this.notice='先升级铺位，再加固房门'; this.noticeT=3; beep(660,.08,'triangle'); updateUI(); }
+ reset(){ this.t=23; this.coin=53; this.wood=0; this.bed=0; this.door=0; this.doorHp=99; this.room=5; this.monsters=[]; this.bullets=[]; this.fx=[]; this.towers=[]; this.spawnCd=2.2; this.incomeTick=0; this.repairCd=0; this.kills=0; this.warn=0; this.notice=''; this.noticeT=0; this.paused=false; this.confirmRestart=false; this.flash=0; this.bedGlow=0; this.doorShake=0; this.coinPulse=0; this.woodPulse=0; }
+ start(){ initAudio(); this.reset(); this.state='PLAYING'; this.notice='先升级床位，再加固房门'; this.noticeT=1.2; this.seedPreviewMonsters(); beep(520,.06,'triangle'); updateUI(); }
+ seedPreviewMonsters(){ this.spawn('shade',0,190); this.spawn('shade',0,300); this.spawn('split',0,430); }
+ choose(i){ this.room=i; this.state='PLAYING'; this.notice='守住房门到天亮'; this.noticeT=1.2; updateUI(); }
  get r(){ return rooms[this.room]; }
  get dpos(){ return doorPos(this.r); }
  bedNext(){ return CFG.bed[this.bed+1]; }
  doorNext(){ return CFG.door[this.door+1]; }
  canPay(c,w){ return this.coin>=c && this.wood>=w; }
- pay(c,w){ if(!this.canPay(c,w)){ this.notice='资源不足'; this.noticeT=1.2; beep(130,.08,'sawtooth'); vibrate(16); return false;} this.coin-=c; this.wood-=w; beep(720,.05,'triangle'); return true; }
- upgradeBed(){ const n=this.bedNext(); if(n && this.pay(n.c,0)){ this.bed++; this.bedGlow=.55; this.notice='床位升级：'+CFG.bed[this.bed].n; this.noticeT=1.4; updateUI(); } }
- upgradeDoor(){ const n=this.doorNext(), old=CFG.door[this.door]; if(n && this.pay(n.coin,n.wood)){ this.door++; this.doorHp = n.hp; this.doorShake=.22; this.notice='房门加固：'+n.n; this.noticeT=1.4; updateUI(); } }
- repair(){ if(this.repairCd>0){ this.notice='维修冷却中'; this.noticeT=1; return; } if(this.pay(0,CFG.repair.wood)){ this.doorHp=clamp(this.doorHp+CFG.door[this.door].hp*CFG.repair.ratio,0,CFG.door[this.door].hp); this.repairCd=CFG.repair.cd; this.notice='房门已维修'; this.noticeT=1.2; const p=this.dpos; for(let i=0;i<10;i++) this.fx.push({x:p.x+(Math.random()-.5)*18,y:p.y+(Math.random()-.5)*54,life:.45,col:'#64F090'}); vibrate(18); updateUI(); } }
- build(type){ if(this.towers.length>=3){ this.notice='已满'; this.noticeT=1; return; } const cfg=CFG.towers[type]; if(this.pay(cfg.coin[0],cfg.wood[0])){ const p=slots(this.r)[this.towers.length]; this.towers.push({type,lv:0,x:p.x,y:p.y,cd:0,tick:0}); this.notice='建造 '+cfg.name; this.noticeT=1.2; updateUI(); } }
- buildDefense(){ const order=['bolt','brazier','bell']; this.build(order[this.towers.length%order.length]); }
- upgradeTower(){ if(!this.towers.length){ this.notice='先建造防御设施'; this.noticeT=1; return; } let tw=this.towers.reduce((a,b)=>a.lv<=b.lv?a:b); const cfg=CFG.towers[tw.type]; if(tw.lv>=3){ this.notice='已有设施达到满级'; this.noticeT=1; return; } const nl=tw.lv+1; if(this.pay(cfg.coin[nl],cfg.wood[nl])){ tw.lv=nl; this.notice=cfg.name+' 升至 '+(nl+1)+' 级'; this.noticeT=1.2; updateUI(); } }
+ pay(c,w){ if(!this.canPay(c,w)){ this.notice=''; this.noticeT=0; beep(130,.06,'sawtooth'); vibrate(12); return false;} this.coin-=c; this.wood-=w; beep(720,.05,'triangle'); return true; }
+ upgradeBed(){ const n=this.bedNext(); if(n && this.pay(n.c,0)){ this.bed++; this.bedGlow=.55; this.notice='床位升级：'+CFG.bed[this.bed].n; this.noticeT=.8; updateUI(); return true; } return false; }
+ upgradeDoor(){ const n=this.doorNext(); if(n && this.pay(n.coin,n.wood)){ this.door++; this.doorHp = n.hp; this.doorShake=.22; this.notice='房门加固：'+n.n; this.noticeT=.8; updateUI(); return true; } return false; }
+ repair(){ if(this.repairCd>0){ this.notice=''; this.noticeT=0; return false; } if(this.pay(0,CFG.repair.wood)){ this.doorHp=clamp(this.doorHp+CFG.door[this.door].hp*CFG.repair.ratio,0,CFG.door[this.door].hp); this.repairCd=CFG.repair.cd; this.notice='房门已维修'; this.noticeT=.8; const p=this.dpos; for(let i=0;i<10;i++) this.fx.push({x:p.x+(Math.random()-.5)*18,y:p.y+(Math.random()-.5)*54,life:.45,col:'#64F090'}); vibrate(18); updateUI(); return true; } return false; }
+ build(type){ if(this.towers.length>=3){ return false; } const cfg=CFG.towers[type]; if(this.pay(cfg.coin[0],cfg.wood[0])){ const p=slots(this.r)[this.towers.length]; this.towers.push({type,lv:0,x:p.x,y:p.y,cd:0,tick:0}); this.notice='建造 '+cfg.name; this.noticeT=.8; updateUI(); return true; } return false; }
+ buildDefense(){ const order=['bolt','brazier','bell']; return this.build(order[this.towers.length%order.length]); }
+ upgradeTower(){ if(!this.towers.length){ return false; } let tw=this.towers.reduce((a,b)=>a.lv<=b.lv?a:b); const cfg=CFG.towers[tw.type]; if(tw.lv>=3){ return false; } const nl=tw.lv+1; if(this.pay(cfg.coin[nl],cfg.wood[nl])){ tw.lv=nl; this.notice=cfg.name+' 升至 '+(nl+1)+' 级'; this.noticeT=.8; updateUI(); return true; } return false; }
  spawnPack(){ let t=this.t, list=['shade']; if(t>30) list.push('shade'); if(t>90) list.push('heavy'); if(t>160) list.push('split','split'); if(t>240) list.push('heavy','shade'); if(t>=270) list=['frenzy','split','split','heavy']; for(let i=0;i<list.length && this.monsters.length<CFG.maxMonsters;i++) this.spawn(list[i],i*.35); }
- spawn(type,delay=0){ const top=Math.random()<.5; const start={x:195,y:top?82:588}; const target=this.dpos; const c=CFG.enemies[type], stage=1+Math.floor(this.t/60)*.18, frenzy=this.t>=CFG.frenzy; const hp=c.hp*stage*(frenzy?1.25:1); this.monsters.push({type,x:start.x,y:start.y-delay*18,hp,maxHp:hp,spd:c.spd*(frenzy?1.15:1),atk:c.atk*stage*(frenzy?1.35:1),wood:c.wood,target,hit:0,attack:false,slow:0}); }
+ spawn(type,delay=0,y=null){ const target=this.dpos; const c=CFG.enemies[type], stage=1+Math.floor(this.t/60)*.18, frenzy=this.t>=CFG.frenzy; const hp=c.hp*stage*(frenzy?1.25:1); this.monsters.push({type,x:215,y:y===null?145-delay*36:y,hp,maxHp:hp,spd:c.spd*(frenzy?1.15:1),atk:c.atk*stage*(frenzy?1.35:1),wood:c.wood,target,hit:0,attack:false,slow:0}); }
  spawnInterval(){ const t=this.t; if(t<30) return 8; if(t<60) return 7; if(t<90) return 6; if(t<120) return 7; if(t<160) return 6; if(t<210) return 6; if(t<270) return 5; return 4; }
  update(dt){ if(this.state!=='PLAYING'||this.paused) return; this.t+=dt; this.incomeTick+=dt; this.repairCd=Math.max(0,this.repairCd-dt); if(this.noticeT>0) this.noticeT-=dt; if(this.t>=CFG.duration){ this.state='WIN'; saveStats(true); beep(680,.12); setTimeout(()=>beep(880,.14),130); updateUI(); return; }
-  while(this.incomeTick>=1){ this.incomeTick-=1; this.coin+=CFG.bed[this.bed].inc; if(Math.floor(this.t)%12===0) beep(900,.025,'sine',.014); }
-  for(const grant of [{t:60,w:3},{t:120,w:5},{t:180,w:7},{t:240,w:10}]) if(this.t-dt<grant.t && this.t>=grant.t){ this.wood+=grant.w; this.notice='获得备用木料 +'+grant.w; this.noticeT=1.4; }
-  if(this.t-dt<270 && this.t>=270){ this.notice='夜深狂潮来临'; this.noticeT=3; beep(90,.35,'sawtooth',.05); vibrate(45); }
+  while(this.incomeTick>=1){ this.incomeTick-=1; this.coin+=CFG.bed[this.bed].inc; this.coinPulse=.28; if(Math.floor(this.t)%12===0) beep(900,.025,'sine',.014); }
+  for(const grant of [{t:60,w:3},{t:120,w:5},{t:180,w:7},{t:240,w:10}]) if(this.t-dt<grant.t && this.t>=grant.t){ this.wood+=grant.w; this.woodPulse=.36; this.notice='获得备用木料 +'+grant.w; this.noticeT=.8; }
+  if(this.t-dt<270 && this.t>=270){ this.notice='夜深狂潮来临'; this.noticeT=1.6; beep(90,.35,'sawtooth',.05); vibrate(45); }
   this.spawnCd-=dt; if(this.spawnCd<=0){ this.spawnPack(); this.spawnCd=this.spawnInterval(); }
-  this.bedGlow=Math.max(0,this.bedGlow-dt); this.doorShake=Math.max(0,this.doorShake-dt); this.updateMonsters(dt); this.updateTowers(dt); this.updateBullets(dt); this.fx=this.fx.filter(f=>(f.life-=dt)>0); if(this.doorHp<=0){ this.doorHp=0; this.state='LOSE'; saveStats(false); beep(180,.2,'sawtooth'); setTimeout(()=>beep(100,.25,'sawtooth'),170); vibrate(80); updateUI(); } }
+  this.bedGlow=Math.max(0,this.bedGlow-dt); this.doorShake=Math.max(0,this.doorShake-dt); this.coinPulse=Math.max(0,this.coinPulse-dt); this.woodPulse=Math.max(0,this.woodPulse-dt); this.updateMonsters(dt); this.updateTowers(dt); this.updateBullets(dt); this.fx=this.fx.filter(f=>(f.life-=dt)>0); if(this.doorHp<=0){ this.doorHp=0; this.state='LOSE'; saveStats(false); beep(180,.2,'sawtooth'); setTimeout(()=>beep(100,.25,'sawtooth'),170); vibrate(80); updateUI(); } }
  updateMonsters(dt){ const dp=this.dpos, red=CFG.door[this.door].red; for(const m of this.monsters){ m.hit=Math.max(0,m.hit-dt); m.slow=0; for(const tw of this.towers) if(tw.type==='bell'){ const cf=CFG.towers.bell; if(dist(m,tw)<=cf.range[tw.lv]) m.slow=Math.max(m.slow,cf.slow[tw.lv]); }
-   if(dist(m,dp)>10){ const dx=dp.x-m.x, dy=dp.y-m.y, l=Math.hypot(dx,dy)||1; m.x+=dx/l*m.spd*(1-m.slow)*dt; m.y+=dy/l*m.spd*(1-m.slow)*dt; m.attack=false; } else { m.attack=true; this.doorHp-=m.atk*(1-red)*dt; this.warn=Math.max(this.warn,.3); this.doorShake=Math.max(this.doorShake,.12); if(Math.random()<dt*2) { beep(95,.035,'square',.018); vibrate(8); } }
+   const speed=m.spd*(1-m.slow)*dt; if(dist(m,dp)>9){ if(Math.abs(m.y-dp.y)>7){ m.x += (215-m.x)*Math.min(1,dt*4); m.y += Math.sign(dp.y-m.y)*Math.min(Math.abs(dp.y-m.y),speed); } else { m.y=dp.y; m.x += Math.sign(dp.x-m.x)*Math.min(Math.abs(dp.x-m.x),speed); } m.attack=false; } else { m.attack=true; m.x=dp.x; m.y=dp.y; this.doorHp-=m.atk*(1-red)*dt; this.warn=Math.max(this.warn,.3); this.doorShake=Math.max(this.doorShake,.12); if(Math.random()<dt*2) { beep(95,.035,'square',.018); vibrate(8); } }
   }
   this.warn=Math.max(0,this.warn-dt); }
- damage(m,amount){ m.hp-=amount; m.hit=.12; this.fx.push({x:m.x,y:m.y,life:.25,col:'#ffd36b'}); if(m.hp<=0){ this.wood+=m.wood; this.coin+=4+Math.floor(this.t/45); this.kills++; beep(300,.04,'triangle',.018); } }
+ damage(m,amount){ m.hp-=amount; m.hit=.12; this.fx.push({x:m.x,y:m.y,life:.25,col:'#ffd36b'}); if(m.hp<=0){ for(let i=0;i<12;i++) this.fx.push({x:m.x+(Math.random()-.5)*18,y:m.y+(Math.random()-.5)*18,life:.34+Math.random()*.18,col:i%2?'#8EA0FF':'#FF4D5D'}); this.wood+=m.wood; this.coin+=4+Math.floor(this.t/45); this.coinPulse=.34; this.woodPulse=.34; this.kills++; beep(300,.04,'triangle',.018); } }
  updateTowers(dt){ for(const tw of this.towers){ const cf=CFG.towers[tw.type]; if(tw.type==='bolt'){ tw.cd-=dt; if(tw.cd<=0){ const target=this.monsters.filter(m=>dist(m,tw)<=cf.range[tw.lv]).sort((a,b)=>(b.attack-a.attack)||dist(a,this.dpos)-dist(b,this.dpos))[0]; if(target){ tw.cd=cf.rate[tw.lv]; this.bullets.push({x:tw.x,y:tw.y,tx:target.x,ty:target.y,life:.16,col:'#ffd65a'}); this.damage(target,cf.dmg[tw.lv]); beep(560,.025,'square',.012); } } }
    if(tw.type==='brazier'){ tw.tick-=dt; if(tw.tick<=0){ tw.tick=.5; for(const m of this.monsters) if(dist(m,tw)<=cf.range[tw.lv]) this.damage(m,cf.dps[tw.lv]*.5); } }
    if(tw.type==='bell'){ const cf=CFG.towers.bell; if(cf.dps[tw.lv]>0){ tw.tick-=dt; if(tw.tick<=0){ tw.tick=.5; for(const m of this.monsters) if(dist(m,tw)<=cf.range[tw.lv]) this.damage(m,cf.dps[tw.lv]*.5); } } }
@@ -126,30 +139,29 @@ class Game{
 const game=new Game(); window.game=game;
 function cost(c,w){ return `${c?c+'铜 ':''}${w?w+'木':''}`.trim()||'满级'; }
 function shortage(c=0,w=0){ const parts=[]; if(game.coin<c) parts.push(`缺 ${Math.ceil(c-game.coin)}铜`); if(game.wood<w) parts.push(`缺 ${w-game.wood}木`); return parts.join(' ') || ''; }
-function disabledReason(c=0,w=0,extra=''){ return extra || shortage(c,w); }
 function btn(label,sub,fn,dis=false,cls='',reason=''){
- const disabledAttr=dis?'disabled aria-disabled="true"':'';
- const small=dis&&reason?reason:(sub||'');
- return `<button class="${cls}" ${disabledAttr} data-act="${fn}">${label}<small>${small}</small></button>`;
+ const disabledAttr=dis?'aria-disabled="true"':'';
+ const classes=[cls,dis?'disabled':''].filter(Boolean).join(' ');
+ return `<button class="${classes}" ${disabledAttr} data-act="${fn}" data-reason="${reason||''}">${label}<small>${dis&&reason?reason:(sub||'')}</small></button>`;
 }
-function recommendedAction(bn,dn,hpPct){ if(hpPct<.35 && game.wood>=CFG.repair.wood) return 'repair'; if(bn && game.canPay(bn.c,0)) return 'bed'; if(dn && game.canPay(dn.coin,dn.wood)) return 'door'; if(game.towers.length<3 && game.canPay(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0])) return 'buildDefense'; return 'buildDefense'; }
-function towerUpgradeText(){ if(!game.towers.length)return '无设施'; let tw=game.towers.reduce((a,b)=>a.lv<=b.lv?a:b); if(tw.lv>=3)return '已满级'; const cf=CFG.towers[tw.type]; return `${cf.name} ${cost(cf.coin[tw.lv+1],cf.wood[tw.lv+1])}`; }
+function recommendedAction(bn,dn,hpPct){ if(hpPct<.35 && game.wood>=CFG.repair.wood) return 'repair'; if(bn && game.canPay(bn.c,0)) return 'bed'; if(dn && game.canPay(dn.coin,dn.wood)) return 'door'; if(game.towers.length<3 && game.canPay(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0])) return 'buildDefense'; return 'bed'; }
+function towerUpgradeText(){ if(!game.towers.length)return '先建防御'; let tw=game.towers.reduce((a,b)=>a.lv<=b.lv?a:b); if(tw.lv>=3)return '已满级'; const cf=CFG.towers[tw.type]; return `${cf.name} ${cost(cf.coin[tw.lv+1],cf.wood[tw.lv+1])}`; }
 function towerUpgradeDisabledReason(){ if(!game.towers.length)return '先建防御'; let tw=game.towers.reduce((a,b)=>a.lv<=b.lv?a:b); if(tw.lv>=3)return '已满级'; const cf=CFG.towers[tw.type], nl=tw.lv+1; return shortage(cf.coin[nl],cf.wood[nl]); }
-function updateUI(){ const hpMax=CFG.door[game.door].hp, hpPct=game.doorHp/hpMax; topBar.innerHTML=`<div class="stat">时间<b>${fmtTime(Math.max(0,CFG.duration-game.t))}</b></div><div class="stat">铜钱<b>${Math.floor(game.coin)}</b></div><div class="stat">木料<b>${game.wood}</b></div><div class="stat">门<b>${Math.ceil(game.doorHp)}/${hpMax}</b></div>`; topBar.classList.toggle('danger', game.state==='PLAYING' && hpPct<.3);
+function updateUI(){ const hpMax=CFG.door[game.door].hp, hpPct=game.doorHp/hpMax; topBar.innerHTML=`<div class="stat">时间<b>${fmtTime(Math.max(0,CFG.duration-game.t))}</b></div><div class="stat ${game.coinPulse>0?'pulse':''}">铜钱<b>${Math.floor(game.coin)}</b></div><div class="stat ${game.woodPulse>0?'pulse':''}">木料<b>${game.wood}</b></div><div class="stat ${hpPct<.3?'low':''}">门<b>${Math.ceil(game.doorHp)}/${hpMax}</b></div>`;
  if(game.state==='PLAYING'){
   const bn=game.bedNext(), dn=game.doorNext(), rec=recommendedAction(bn,dn,hpPct);
   const repairBlocked = game.repairCd>0 || !game.canPay(0,CFG.repair.wood);
   const nextType=['bolt','brazier','bell'][game.towers.length%3], nextTower=CFG.towers[nextType];
   const buildFull=game.towers.length>=3, buildBlocked=buildFull || !game.canPay(nextTower.coin[0],nextTower.wood[0]);
-  bottomBar.style.display='block';
-  const bedReason=bn?disabledReason(bn.c,0):'已满级', doorReason=dn?disabledReason(dn.coin,dn.wood):'已满级';
-  const repairReason=game.repairCd>0?`${game.repairCd.toFixed(0)}秒后可修`:disabledReason(0,CFG.repair.wood);
+  const bedReason=bn?shortage(bn.c,0):'已满级', doorReason=dn?shortage(dn.coin,dn.wood):'已满级';
+  const repairReason=game.repairCd>0?`${game.repairCd.toFixed(0)}秒后可修`:shortage(0,CFG.repair.wood);
   const restartLabel=game.confirmRestart?'确认重开':'重开';
+  bottomBar.style.display='block';
   bottomBar.innerHTML=`<div class="command-grid">${[
-   btn('升级床位', bn?`Lv${game.bed+1}→${game.bed+2} ${cost(bn.c,0)}`:'已满级','bed', !bn||!game.canPay(bn.c,0), rec==='bed'?'primary recommended':'', bedReason),
-   btn('加固房门', dn?`需${cost(dn.coin,dn.wood)}`:'已满级','door', !dn||!game.canPay(dn.coin,dn.wood), rec==='door'?'recommended':'', doorReason),
-   btn('维修房门', game.repairCd>0?`${game.repairCd.toFixed(0)}s`:`需${CFG.repair.wood}木`,'repair', repairBlocked, hpPct<.3?'danger recommended':'', repairReason),
-   btn('建造防御', buildFull?'已满':`${nextTower.name} ${cost(nextTower.coin[0],nextTower.wood[0])}`,'buildDefense', buildBlocked, rec==='buildDefense'?'recommended':'', buildFull?'已满':shortage(nextTower.coin[0],nextTower.wood[0])),
+   btn('升级床位', bn?`Lv${game.bed+1}→${game.bed+2} ${cost(bn.c,0)}`:'已满级','bed', !bn||!game.canPay(bn.c,0), rec==='bed'?'primary':'', bedReason),
+   btn('加固房门', dn?`需${cost(dn.coin,dn.wood)}`:'已满级','door', !dn||!game.canPay(dn.coin,dn.wood), rec==='door'?'primary':'', doorReason),
+   btn('维修房门', game.repairCd>0?`${game.repairCd.toFixed(0)}s`:`需${CFG.repair.wood}木`,'repair', repairBlocked, hpPct<.3&&!repairBlocked?'primary danger':'', repairReason),
+   btn('建造防御', buildFull?'已满':`${nextTower.name} ${cost(nextTower.coin[0],nextTower.wood[0])}`,'buildDefense', buildBlocked, rec==='buildDefense'?'primary':'', buildFull?'已满':shortage(nextTower.coin[0],nextTower.wood[0])),
    btn('升级设施', towerUpgradeText(),'towerUp', !game.towers.length || towerUpgradeDisabledReason()==='已满级' || !!towerUpgradeDisabledReason(), '', towerUpgradeDisabledReason()),
    btn(game.paused?'继续':'暂停', game.paused?'恢复守夜':'守夜中','pause'),
    btn('提示', hpPct<.35?'先维修房门':(bn?'优先升级床位':'补强防御'),'noop'),
@@ -158,42 +170,34 @@ function updateUI(){ const hpMax=CFG.door[game.door].hp, hpPct=game.doorHp/hpMax
   ].join('')}</div>`;
  } else { bottomBar.style.display='none'; }
  renderOverlay(); }
-function renderOverlay(){ if(game.state==='TITLE'){ overlay.innerHTML=`<div class="card"><h1>夜半守舍</h1><p>进入旧楼，守住房门。休息积攒铜钱，建造防御设施，在夜影破门前坚持到天亮。</p><button class="big" data-act="start">开始守夜</button><p><small>原创 2D 策略塔防生存 · 离线版</small></p></div>`; }
- else if(game.state==='ROOM_SELECT'){ overlay.innerHTML=''; }
+function renderOverlay(){ if(game.state==='TITLE'){ overlay.innerHTML=`<div class="card"><h1>夜半守舍</h1><p>进入旧楼，默认守右下宿舍。休息积攒铜钱，建造防御设施，在夜影破门前坚持到天亮。</p><button class="big" data-act="start">开始守夜</button><p><small>原创 2D 策略塔防生存 · 离线版</small></p></div>`; }
  else if(game.state==='WIN'||game.state==='LOSE'){ const win=game.state==='WIN'; overlay.innerHTML=`<div class="card"><h2>${win?'天亮了':'门破了'}</h2><p>${win?'你守住了这间屋子。':'夜色涌入屋内，守夜失败。'}</p><p>生存 ${Math.floor(game.t)} 秒 · 击退 ${game.kills} · 铺位 Lv${game.bed+1} · 房门 Lv${game.door+1}</p><button class="big" data-act="again">再守一夜</button><br><br><button data-act="title">返回标题</button></div>`; }
  else overlay.innerHTML=''; }
-function handleAction(a){ initAudio(); if(audio&&audio.state==='suspended') audio.resume(); if(a==='noop') return; if(a!=='restart') game.confirmRestart=false; if(a==='start') game.start(); else if(a==='again') game.start(); else if(a==='title'){game.state='TITLE'; updateUI();} else if(a==='restart'){ if(game.state==='PLAYING' && !game.confirmRestart){ game.confirmRestart=true; game.notice='再次点击确认重开'; game.noticeT=2; updateUI(); return; } game.start(); } else if(a==='pause'){game.paused=!game.paused; updateUI();} else if(game.state==='PLAYING'){ if(a==='bed') game.upgradeBed(); if(a==='door') game.upgradeDoor(); if(a==='repair') game.repair(); if(a==='buildDefense') game.buildDefense(); if(a==='towerUp') game.upgradeTower(); } }
-document.addEventListener('pointerdown',e=>{ const b=e.target.closest('button'); if(b&&b.dataset.act){ e.preventDefault(); handleAction(b.dataset.act); } else if(game.state==='ROOM_SELECT'){ const x=(e.clientX-ox)/scale, y=(e.clientY-oy)/scale; rooms.forEach((r,i)=>{ if(x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h) game.choose(i); }); } },{passive:false});
+function showFloatTip(button,text){ if(!button||!text) return; const tip=document.createElement('div'); const r=button.getBoundingClientRect(), sr=stage.getBoundingClientRect(); tip.className='float-tip'; tip.textContent=text||'资源不足'; tip.style.left=((r.left+r.width/2-sr.left)/scale)+'px'; tip.style.top=((r.top-sr.top)/scale-24)+'px'; floatTips.appendChild(tip); setTimeout(()=>tip.remove(),850); }
+function handleAction(a,button){ initAudio(); if(audio&&audio.state==='suspended') audio.resume(); if(a==='noop') return; if(a!=='restart') game.confirmRestart=false; let ok=true; if(button&&button.getAttribute('aria-disabled')==='true'){ showFloatTip(button,button.dataset.reason||'资源不足'); return; }
+ if(a==='start'||a==='again') game.start(); else if(a==='title'){game.state='TITLE'; updateUI();} else if(a==='restart'){ if(game.state==='PLAYING' && !game.confirmRestart){ game.confirmRestart=true; updateUI(); return; } game.start(); } else if(a==='pause'){game.paused=!game.paused; updateUI();} else if(game.state==='PLAYING'){ if(a==='bed') ok=game.upgradeBed(); if(a==='door') ok=game.upgradeDoor(); if(a==='repair') ok=game.repair(); if(a==='buildDefense') ok=game.buildDefense(); if(a==='towerUp') ok=game.upgradeTower(); if(!ok) showFloatTip(button,button?.dataset.reason||'资源不足'); } }
+document.addEventListener('pointerdown',e=>{ const b=e.target.closest('button'); if(b&&b.dataset.act){ e.preventDefault(); handleAction(b.dataset.act,b); } else if(game.state==='ROOM_SELECT'){ const x=(e.clientX-stage.getBoundingClientRect().left)/scale, y=(e.clientY-stage.getBoundingClientRect().top)/scale; rooms.forEach((r,i)=>{ if(x>=r.x&&x<=r.x+r.w&&y>=r.y&&y<=r.y+r.h) game.choose(i); }); } },{passive:false});
 
-function drawRoundRect(x,y,w,h,r,fill,stroke){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=2;ctx.stroke();} }
-function draw(){ ctx.clearRect(0,0,BASE_W,BASE_H); const frenzy=game.state==='PLAYING'&&game.t>=CFG.frenzy; const grd=ctx.createLinearGradient(0,0,0,BASE_H); grd.addColorStop(0,frenzy?'#230b18':'#0b1020'); grd.addColorStop(1,'#05070d'); ctx.fillStyle=grd; ctx.fillRect(0,0,BASE_W,BASE_H); drawMap(); drawEntities(); drawVignette(); hint.textContent=game.noticeT>0?game.notice:(game.state==='ROOM_SELECT'?'选择一间屋子，开始守夜':''); }
-function drawMap(){ ctx.save();
- const corridor={x:156,y:88,w:78,h:550};
- const cg=ctx.createLinearGradient(corridor.x,0,corridor.x+corridor.w,0); cg.addColorStop(0,'#172039'); cg.addColorStop(.5,'#1B2745'); cg.addColorStop(1,'#172039');
- drawRoundRect(corridor.x,corridor.y,corridor.w,corridor.h,18,cg,'#4E5C7F');
- ctx.fillStyle='rgba(5,8,20,.38)'; for(let y=corridor.y+18;y<corridor.y+corridor.h-12;y+=42){ drawRoundRect(corridor.x+27,y,24,28,6,'rgba(6,9,22,.36)',null); }
- ctx.strokeStyle='rgba(95,130,190,.18)'; ctx.lineWidth=1; for(let y=corridor.y+28;y<corridor.y+corridor.h;y+=42){ ctx.beginPath(); ctx.moveTo(corridor.x+9,y); ctx.lineTo(corridor.x+corridor.w-9,y); ctx.stroke(); }
- rooms.forEach((r,i)=>{ const chosen=i===game.room, selectable=game.state==='ROOM_SELECT'; const pulse=selectable?.45+.25*Math.sin(performance.now()/260+i):0; const fill=chosen?'#2A263D':'#1E1C2D'; drawRoundRect(r.x,r.y,r.w,r.h,18,fill, chosen?'#6EA5FF':(selectable?`rgba(110,165,255,${pulse})`:'#38435F'));
-  drawRoundRect(r.x+8,r.y+r.h-24,r.w-16,14,8,'rgba(5,7,16,.32)',null);
-  const d=doorPos(r), shake=chosen?game.doorShake*Math.sin(performance.now()/24)*7:0; const dx=(r.side==='L'?1:-1)*shake; const doorCol=chosen && game.warn>0?'#FF4D5D':(chosen?'#C2873C':'#A66A2D');
-  drawRoundRect(d.x-7+dx,d.y-33,14,66,4,doorCol,'#4b2a16'); ctx.fillStyle='rgba(255,221,130,.22)'; ctx.fillRect(d.x-3+dx,d.y-27,3,54);
-  if(selectable){ ctx.fillStyle='#D8D3C6'; ctx.font='800 13px system-ui'; ctx.textAlign='center'; ctx.fillText('选择房间',r.x+r.w/2,r.y+r.h/2-4); ctx.fillStyle='#798096'; ctx.font='11px system-ui'; ctx.fillText(`${i+1}号宿舍`,r.x+r.w/2,r.y+r.h/2+14); }
-  if(chosen) drawRoomInterior(r); }); ctx.restore(); }
-function drawRoomInterior(r){ ctx.save(); const hp=game.doorHp/CFG.door[game.door].hp; const low=hp<.3; drawRoundRect(r.x+14,r.y+8,r.w-28,8,4,'#421018',null); drawRoundRect(r.x+14,r.y+8,(r.w-28)*hp,8,4,low?'#FF4D5D':(hp<.55?'#FFD166':'#64F090'),null);
- const bedX=r.side==='L'?r.x+17:r.x+r.w-67, bedY=r.y+24; if(game.bedGlow>0){ ctx.globalAlpha=game.bedGlow; drawRoundRect(bedX-5,bedY-5,58,42,13,'rgba(100,240,144,.22)','#64F090'); ctx.globalAlpha=1; }
- drawRoundRect(bedX,bedY,48,32,10,'#33537F','#6EA5FF'); ctx.fillStyle='rgba(255,255,255,.13)'; ctx.fillRect(bedX+5,bedY+6,38,5);
- drawRoundRect(bedX+4,bedY-9,40,5,3,'#64F090',null);
- const px=r.side==='L'?bedX+32:bedX+16, py=bedY+48; ctx.fillStyle='#FFD16A'; ctx.beginPath(); ctx.arc(px,py,11,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#5A3B22'; ctx.fillRect(px-6,py+8,12,16);
- slots(r).forEach((s,idx)=>{ const tw=game.towers[idx]; ctx.beginPath(); ctx.arc(s.x,s.y,13,0,Math.PI*2); ctx.fillStyle=tw?'#202742':'rgba(121,128,150,.16)'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=tw?'#FFD16A':'#798096'; ctx.stroke(); if(!tw){ ctx.beginPath(); ctx.arc(s.x,s.y,7,0,Math.PI*2); ctx.strokeStyle='rgba(216,211,198,.32)'; ctx.stroke(); } if(tw) drawTower(tw); }); ctx.restore(); }
-function drawTower(tw){ const cf=CFG.towers[tw.type]; ctx.save(); ctx.translate(tw.x,tw.y); if(tw.type==='bolt'){ ctx.fillStyle='#ad8350'; ctx.fillRect(-4,-17,8,26); ctx.fillStyle='#d7ba78'; ctx.fillRect(-15,-4,30,8); }
- else if(tw.type==='brazier'){ ctx.fillStyle='#7a3b25'; ctx.beginPath(); ctx.arc(0,0,11,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#ff9845'; ctx.beginPath(); ctx.arc(0,-4,7+Math.sin(game.t*8)*2,0,Math.PI*2); ctx.fill(); }
- else { ctx.strokeStyle='#b9d1ff'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.stroke(); ctx.fillStyle='#e8d58a'; ctx.fillRect(-4,-13,8,26); }
- ctx.fillStyle='#fff3b0'; ctx.font='9px sans-serif'; ctx.textAlign='center'; ctx.fillText(tw.lv+1,0,4); ctx.restore(); }
-function drawEntities(){ if(game.state==='PLAYING'||game.state==='WIN'||game.state==='LOSE'){ for(const b of game.bullets){ ctx.strokeStyle=b.col; ctx.lineWidth=3; ctx.globalAlpha=clamp(b.life/.16,0,1); ctx.beginPath(); ctx.moveTo(b.x,b.y); ctx.lineTo(b.tx,b.ty); ctx.stroke(); ctx.globalAlpha=1; }
-  for(const m of game.monsters) drawMonster(m); for(const f of game.fx){ ctx.globalAlpha=clamp(f.life/.25,0,1); ctx.fillStyle=f.col; ctx.beginPath(); ctx.arc(f.x,f.y,8*(1-f.life/.25),0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; } }
-}
-function drawMonster(m){ const c=CFG.enemies[m.type]; ctx.save(); ctx.translate(m.x+(m.attack?Math.sin(performance.now()/28)*2.5:0),m.y+Math.sin((game.t+m.x)*6)*2); ctx.globalAlpha=m.hit>0?.72:1; ctx.fillStyle=m.hit>0?'#ffffff':c.col; ctx.strokeStyle=game.t>=CFG.frenzy?'#ff6070':'#9097cf'; ctx.lineWidth=2; ctx.beginPath(); ctx.ellipse(0,0,m.type==='heavy'?16:12,m.type==='split'?18:13,0,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.fillStyle='#dfe7ff'; ctx.fillRect(-5,-3,3,3); ctx.fillRect(4,-3,3,3); ctx.fillStyle='#361018'; ctx.fillRect(-13,-21,26,4); ctx.fillStyle='#e35b5b'; ctx.fillRect(-13,-21,26*(m.hp/m.maxHp),4); ctx.restore(); }
-function drawVignette(){ const low=game.state==='PLAYING' && game.doorHp/CFG.door[game.door].hp<.3; if(game.warn>0||low||game.t>=CFG.frenzy){ ctx.save(); ctx.globalAlpha=(low?.18:0)+(game.warn*.35)+(game.t>=CFG.frenzy?.12:0); ctx.strokeStyle='#ff304d'; ctx.lineWidth=18; ctx.strokeRect(9,9,BASE_W-18,BASE_H-18); ctx.restore(); } }
+function drawRoundRect(x,y,w,h,r,fill,stroke,lw=2){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); if(fill){ctx.fillStyle=fill;ctx.fill();} if(stroke){ctx.strokeStyle=stroke;ctx.lineWidth=lw;ctx.stroke();} }
+function draw(){ ctx.clearRect(0,0,BASE_W,BASE_H); ctx.fillStyle='#050814'; ctx.fillRect(0,0,BASE_W,BASE_H); const g=ctx.createLinearGradient(0,145,0,730); g.addColorStop(0,'#070B18'); g.addColorStop(1,'#050814'); ctx.fillStyle=g; ctx.fillRect(0,145,BASE_W,585); drawMap(); drawEntities(); drawVignette(); hint.textContent=game.noticeT>0?game.notice:''; }
+function drawMap(){ ctx.save(); drawCorridor(); rooms.forEach((r,i)=>drawRoom(r,i)); ctx.restore(); }
+function drawCorridor(){ const c={x:185,y:145,w:60,h:585}; drawRoundRect(c.x,c.y,c.w,c.h,18,'#17213A','#3A4A70',2); for(let y=c.y+18;y<c.y+c.h-20;y+=40){ drawRoundRect(c.x+18,y,24,32,6,'#202A45',null); } ctx.strokeStyle='rgba(58,74,112,.45)'; ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(215,158); ctx.lineTo(215,716); ctx.stroke(); }
+function drawRoom(r,i){ const chosen=i===game.room; if(chosen){ ctx.save(); ctx.shadowColor='rgba(111,168,255,.42)'; ctx.shadowBlur=14; drawRoundRect(r.x,r.y,r.w,r.h,16,'#201D31','#6FA8FF',2); ctx.restore(); } else drawRoundRect(r.x,r.y,r.w,r.h,16,'#201D31','#313B59',2);
+ drawRoundRect(r.x+12,r.y+r.h-26,r.w-24,10,5,'#171525',null); drawDoor(r,chosen); if(chosen) drawRoomInterior(r); else drawRoomLabel(r,i); }
+function drawDoor(r,chosen){ const d=doorRect(r); const hp=game.doorHp/CFG.door[game.door].hp; const low=chosen&&hp<.32; const hit=chosen&&game.warn>0; const shake=chosen?game.doorShake*Math.sin(performance.now()/22)*4:0; const sx=r.side==='L'?shake:-shake; const col=hit?'#FF4D5D':(low?'#B9563D':'#B57431'); drawRoundRect(d.x+sx,d.y,d.w,d.h,4,'#6A3F1F',null); drawRoundRect(d.x+sx+2,d.y+2,d.w-4,d.h-4,3,col,'#6A3F1F',1); ctx.fillStyle=hit?'#FFD0D4':'#D08C3E'; ctx.fillRect(d.x+sx+(r.side==='L'?8:3),d.y+8,3,d.h-16); }
+function drawRoomLabel(r,i){ ctx.fillStyle='#59637F'; ctx.font='800 12px system-ui'; ctx.textAlign='center'; ctx.fillText(`${i+1}号宿舍`,r.x+r.w/2,r.y+68); }
+function drawRoomInterior(r){ const hp=game.doorHp/CFG.door[game.door].hp; const low=hp<.3; drawRoundRect(278,552,92,8,4,'#421018',null); drawRoundRect(278,552,92*hp,8,4,low?'#FF4D5D':(hp<.55?'#FFD166':'#64F090'),null);
+ if(game.bedGlow>0){ ctx.globalAlpha=game.bedGlow; drawRoundRect(329,577,62,46,10,'rgba(100,240,144,.18)','#64F090'); ctx.globalAlpha=1; }
+ drawRoundRect(334,582,52,36,8,'#3D5F8E','#77A9FF',2); drawRoundRect(340,588,18,24,5,'#2C4165',null); ctx.fillStyle='rgba(255,255,255,.13)'; ctx.fillRect(360,590,20,5);
+ ctx.fillStyle='#FFD166'; ctx.beginPath(); ctx.arc(342,638,15,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#5B3A1E'; drawRoundRect(335,650,14,22,4,'#5B3A1E',null); ctx.fillStyle='rgba(255,255,255,.35)'; ctx.fillRect(337,633,3,3); ctx.fillRect(345,633,3,3);
+ slots(r).forEach((s,idx)=>{ const tw=game.towers[idx]; if(!tw){ ctx.beginPath(); ctx.arc(s.x,s.y,15,0,Math.PI*2); ctx.fillStyle='#3A3A48'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#7A7D8C'; ctx.stroke(); ctx.beginPath(); ctx.arc(s.x,s.y,7,0,Math.PI*2); ctx.strokeStyle='rgba(216,211,198,.22)'; ctx.stroke(); } else drawTower(tw); }); }
+function drawTower(tw){ ctx.save(); ctx.translate(tw.x,tw.y); ctx.beginPath(); ctx.arc(0,0,15,0,Math.PI*2); ctx.fillStyle='#202742'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#FFD16A'; ctx.stroke(); if(tw.type==='bolt'){ ctx.fillStyle='#D7BA78'; ctx.fillRect(-2,-4,-28,8); ctx.fillStyle='#AD8350'; ctx.fillRect(-4,-12,8,24); }
+ else if(tw.type==='brazier'){ ctx.fillStyle='#7A3B25'; ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#FF9845'; ctx.beginPath(); ctx.arc(-3,-4,6+Math.sin(game.t*8)*2,0,Math.PI*2); ctx.fill(); }
+ else { ctx.strokeStyle='#B9D1FF'; ctx.lineWidth=3; ctx.beginPath(); ctx.arc(0,0,10,0,Math.PI*2); ctx.stroke(); ctx.fillStyle='#E8D58A'; ctx.fillRect(-3,-12,6,24); }
+ ctx.fillStyle='#FFF3B0'; ctx.font='9px sans-serif'; ctx.textAlign='center'; ctx.fillText(tw.lv+1,0,4); ctx.restore(); }
+function drawEntities(){ if(game.state==='PLAYING'||game.state==='WIN'||game.state==='LOSE'){ for(const b of game.bullets){ ctx.strokeStyle=b.col; ctx.lineWidth=3; ctx.globalAlpha=clamp(b.life/.16,0,1); ctx.beginPath(); ctx.moveTo(b.x,b.y); ctx.lineTo(b.tx,b.ty); ctx.stroke(); ctx.globalAlpha=1; } for(const m of game.monsters) drawMonster(m); for(const f of game.fx){ ctx.globalAlpha=clamp(f.life/.25,0,1); ctx.fillStyle=f.col; ctx.beginPath(); ctx.arc(f.x,f.y,8*(1-f.life/.25),0,Math.PI*2); ctx.fill(); ctx.globalAlpha=1; } } }
+function drawMonster(m){ const c=CFG.enemies[m.type]; ctx.save(); const wob=m.attack?Math.sin(performance.now()/28)*3:0; ctx.translate(m.x+wob,m.y); ctx.globalAlpha=m.hit>0?.75:1; ctx.fillStyle=m.hit>0?'#FFFFFF':c.col; ctx.strokeStyle='#9097CF'; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(0,0,m.type==='heavy'?16:14,0,Math.PI*2); ctx.fill(); ctx.stroke(); ctx.fillStyle='#F4F7FF'; ctx.beginPath(); ctx.arc(-5,-3,2.2,0,Math.PI*2); ctx.arc(5,-3,2.2,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#361018'; ctx.fillRect(-14,-23,28,4); ctx.fillStyle='#FF4D5D'; ctx.fillRect(-14,-23,28*(m.hp/m.maxHp),4); ctx.restore(); }
+function drawVignette(){ const low=game.state==='PLAYING' && game.doorHp/CFG.door[game.door].hp<.3; if(game.warn>0||low||game.t>=CFG.frenzy){ ctx.save(); ctx.globalAlpha=(low?.13:0)+(game.warn*.28)+(game.t>=CFG.frenzy?.10:0); ctx.strokeStyle='#FF304D'; ctx.lineWidth=14; ctx.strokeRect(7,7,BASE_W-14,BASE_H-14); ctx.restore(); } }
 function loop(ts){ const dt=Math.min(.05,(ts-last)/1000||0); last=ts; game.update(dt); draw(); requestAnimationFrame(loop); }
 setInterval(()=>{ if(game.state==='PLAYING') updateUI(); },250); updateUI(); requestAnimationFrame(loop);
 })();
