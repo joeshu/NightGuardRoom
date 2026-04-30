@@ -15,13 +15,13 @@
   #topBar{ top:var(--hud-top); min-height:56px; display:flex; align-items:center; justify-content:space-around; gap:5px; padding:6px 8px; font-size:12px; }
   .stat{ min-width:54px; text-align:center; line-height:1.18; }
   .stat b{ display:block; color:#fff1c8; font-size:14px; }
-  #bottomBar{ bottom:var(--controls-bottom); padding:8px; display:flex; flex-direction:column; gap:7px; pointer-events:auto; }
+  #bottomBar{ bottom:var(--controls-bottom); padding:7px; display:flex; flex-direction:column; gap:6px; pointer-events:auto; }
   .command-primary{ display:grid; grid-template-columns:1.08fr 1.08fr 1fr; gap:7px; }
   .command-secondary{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; }
   .command-system{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:7px; }
   .drawer{ max-height:0; overflow:hidden; opacity:0; transform:translateY(6px); transition:max-height .18s ease, opacity .18s ease, transform .18s ease; }
-  .drawer.open{ max-height:118px; opacity:1; transform:translateY(0); }
-  button{ min-height:46px; border:1px solid rgba(255,210,125,.28); border-radius:14px; background:linear-gradient(180deg,#34415f,#1a243d); color:#ffeec7; font-weight:800; font-size:12px; box-shadow:0 5px 0 rgba(0,0,0,.24); padding:5px 4px; }
+  .drawer.open{ max-height:100px; opacity:1; transform:translateY(0); }
+  button{ min-height:44px; border:1px solid rgba(255,210,125,.28); border-radius:14px; background:linear-gradient(180deg,#34415f,#1a243d); color:#ffeec7; font-weight:800; font-size:12px; box-shadow:0 5px 0 rgba(0,0,0,.24); padding:5px 4px; }
   button small{ display:block; margin-top:2px; color:#d8e2ff; font-size:10px; font-weight:700; line-height:1.05; }
   button:active{ transform:translateY(2px) scale(.985); box-shadow:0 2px 0 rgba(0,0,0,.25); }
   button:disabled,button[aria-disabled="true"]{ opacity:.72; filter:saturate(.78); background:linear-gradient(180deg,#27304a,#151c30); color:#cdd6ee; border-color:rgba(210,220,255,.22); }
@@ -38,7 +38,7 @@
   .big{ min-height:56px; padding:0 20px; font-size:17px; background:linear-gradient(180deg,#d79a42,#85542c); border-color:#ffd083; color:#1b1007; }
   .hint{ position:absolute; left:18px; right:18px; top:calc(var(--hud-top) + 62px); min-height:22px; text-align:center; color:#ffe6a3; font-weight:800; text-shadow:0 2px 8px #000; pointer-events:none; }
   #rotate{ display:none; position:fixed; inset:0; z-index:10; background:#070b16; color:#ffe6a3; align-items:center; justify-content:center; text-align:center; padding:30px; font-size:22px; }
-  @media (max-height:760px){ #topBar{min-height:50px}.stat b{font-size:13px} button{min-height:42px;font-size:11px}.command-secondary,.command-system{gap:5px} }
+  @media (max-height:760px){ #topBar{min-height:50px}.stat b{font-size:13px} #bottomBar{padding:6px;gap:5px} button{min-height:40px;font-size:11px}.command-secondary,.command-system{gap:5px}.drawer.open{max-height:92px} }
   @media (orientation:landscape){ #rotate{display:flex;} }
 </style>
 </head>
@@ -149,18 +149,18 @@ function updateUI(){ const hpMax=CFG.door[game.door].hp, hpPct=game.doorHp/hpMax
    btn('加固房门', dn?`Lv${game.door+1}→${game.door+2} ${cost(dn.coin,dn.wood)}`:'已满级','door', !dn||!game.canPay(dn.coin,dn.wood), rec==='door'?'recommended':'', doorReason),
    btn('维修房门', game.repairCd>0?`${game.repairCd.toFixed(0)}s`:`${CFG.repair.wood}木`,'repair', repairBlocked, hpPct<.35?'danger recommended':'', repairReason)
   ].join('')}</div><div class="command-secondary">${[
-   btn(game.drawerOpen?'收起建造':'建造防御', game.towers.length>=3?'防御格已满':'弩/火/铃','moreBuild', game.towers.length>=3, rec==='moreBuild'?'recommended':'', '防御格已满'),
+   btn(game.drawerOpen?'收起面板':'建造/更多', game.towers.length>=3?'防御满 · 系统':'弩/火/铃','moreBuild', false, rec==='moreBuild'?'recommended':'', ''),
    btn('升级设施', towerUpgradeText(),'towerUp', !game.towers.length || towerUpgradeDisabledReason()==='已满级' || !!towerUpgradeDisabledReason(), '', towerUpgradeDisabledReason()),
    btn(game.paused?'继续':'暂停', game.paused?'恢复守夜':'守夜中','pause')
   ].join('')}</div><div class="drawer ${game.drawerOpen?'open':''}"><div class="command-secondary">${[
    btn('建竹弩', cost(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0]),'bolt', game.towers.length>=3||!game.canPay(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0]),'', game.towers.length>=3?'防御格已满':shortage(CFG.towers.bolt.coin[0],CFG.towers.bolt.wood[0])),
    btn('建火盆', cost(CFG.towers.brazier.coin[0],CFG.towers.brazier.wood[0]),'brazier', game.towers.length>=3||!game.canPay(CFG.towers.brazier.coin[0],CFG.towers.brazier.wood[0]),'', game.towers.length>=3?'防御格已满':shortage(CFG.towers.brazier.coin[0],CFG.towers.brazier.wood[0])),
    btn('建铜铃', cost(CFG.towers.bell.coin[0],CFG.towers.bell.wood[0]),'bell', game.towers.length>=3||!game.canPay(CFG.towers.bell.coin[0],CFG.towers.bell.wood[0]),'', game.towers.length>=3?'防御格已满':shortage(CFG.towers.bell.coin[0],CFG.towers.bell.wood[0]))
-  ].join('')}</div></div><div class="command-system">${[
+  ].join('')}</div><div class="command-system">${[
    btn('提示', hpPct<.35?'先维修房门':(bn?'优先升级铺位':'补强防御'),'noop'),
    btn(restartLabel, game.confirmRestart?'再次点击生效':'防误触','restart', false, game.confirmRestart?'danger':''),
    btn('目标', `${Math.ceil(CFG.duration-game.t)}秒到天亮`,'noop')
-  ].join('')}</div>`;
+  ].join('')}</div></div>`;
  } else { bottomBar.style.display='none'; }
  renderOverlay(); }
 function renderOverlay(){ if(game.state==='TITLE'){ overlay.innerHTML=`<div class="card"><h1>夜半守舍</h1><p>进入旧楼，守住房门。休息积攒铜钱，建造防御设施，在夜影破门前坚持到天亮。</p><button class="big" data-act="start">开始守夜</button><p><small>原创 2D 策略塔防生存 · 离线版</small></p></div>`; }
