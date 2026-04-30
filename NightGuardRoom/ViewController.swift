@@ -40,11 +40,33 @@ final class ViewController: UIViewController, WKNavigationDelegate {
     }
 
     private func loadLocalGame() {
-        guard let url = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "Resources") else {
-            assertionFailure("Resources/index.html not found in app bundle")
+        let resourceURL = Bundle.main.url(forResource: "index", withExtension: "html", subdirectory: "Resources")
+            ?? Bundle.main.url(forResource: "index", withExtension: "html")
+
+        guard let url = resourceURL else {
+            showStartupError("index.html not found in app bundle")
+            assertionFailure("index.html not found in app bundle")
             return
         }
-        let directory = url.deletingLastPathComponent()
-        webView.loadFileURL(url, allowingReadAccessTo: directory)
+
+        let readAccessDirectory = url.deletingLastPathComponent()
+        webView.loadFileURL(url, allowingReadAccessTo: readAccessDirectory)
+    }
+
+    private func showStartupError(_ message: String) {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "启动失败：\(message)"
+        label.textColor = .white
+        label.font = .systemFont(ofSize: 15, weight: .semibold)
+        label.textAlignment = .center
+        label.numberOfLines = 0
+        label.backgroundColor = UIColor(red: 0.10, green: 0.02, blue: 0.04, alpha: 1)
+        view.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 24),
+            label.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -24),
+            label.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
     }
 }
