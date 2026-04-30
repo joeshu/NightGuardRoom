@@ -50,6 +50,16 @@ def test_html_has_single_script_and_canvas():
     assert HTML.count('</script>') == 1
     assert HTML.count('<div id="bottomBar"') == 1
 
+def test_overlay_does_not_block_in_game_bottom_controls():
+    assert '#ui{ position:absolute; inset:0;' in HTML
+    assert '#bottomBar{ bottom:var(--controls-bottom);' in HTML
+    assert 'pointer-events:auto' in re.search(r'#bottomBar\{[^}]+\}', HTML).group(0)
+    overlay_css = re.search(r'#overlay\{[^}]+\}', HTML).group(0)
+    card_css = re.search(r'\.card\{[^}]+\}', HTML).group(0)
+    assert 'pointer-events:none' in overlay_css
+    assert 'pointer-events:auto' in card_css
+
+
 def test_inline_javascript_parses_with_node():
     import subprocess, tempfile
     script = re.search(r'<script>(.*)</script>', HTML, re.S).group(1)
