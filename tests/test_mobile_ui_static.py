@@ -3,6 +3,7 @@ from pathlib import Path
 
 HTML = Path('NightGuardRoom/Resources/index.html').read_text(encoding='utf-8')
 
+
 def test_viewport_and_safe_area_are_enabled():
     assert 'viewport-fit=cover' in HTML
     for token in ['safe-area-inset-top', 'safe-area-inset-bottom', 'safe-area-inset-left', 'safe-area-inset-right']:
@@ -11,13 +12,21 @@ def test_viewport_and_safe_area_are_enabled():
     assert '--controls-bottom' in HTML
 
 
-def test_bottom_controls_are_contextual_not_nine_button_grid():
+def test_bottom_controls_are_fixed_three_by_three_grid():
     assert '#bottomBar' in HTML
-    assert 'grid-template-columns:repeat(3,1fr)' not in HTML
-    assert 'command-primary' in HTML
-    assert 'command-secondary' in HTML
-    assert 'drawer' in HTML
-    assert 'moreBuild' in HTML
+    assert 'command-grid' in HTML
+    assert 'grid-template-columns:repeat(3,1fr)' in HTML
+    assert 'grid-template-rows:repeat(3,minmax' in HTML
+    for label in ['升级床位', '加固房门', '维修房门', '建造防御', '升级设施', '暂停', '提示', '重开', '目标']:
+        assert label in HTML
+    assert 'buildDefense' in HTML
+
+
+def test_top_status_bar_has_four_blocks_and_original_labels():
+    assert '#topBar{ top:var(--hud-top); left:4%; right:4%;' in HTML
+    assert 'grid-template-columns:repeat(4,1fr)' in HTML
+    for label in ['时间', '铜钱', '木料', '门']:
+        assert label in HTML
 
 
 def test_disabled_actions_show_shortage_reason():
@@ -40,8 +49,15 @@ def test_no_in_game_floating_arrow_or_scroll_button():
 
 
 def test_core_gameplay_still_present():
-    for symbol in ['upgradeBed()', 'upgradeDoor()', 'repair()', 'build(type)', 'upgradeTower()', 'spawnPack()', 'drawMap()', 'drawMonster(m)']:
+    for symbol in ['upgradeBed()', 'upgradeDoor()', 'repair()', 'build(type)', 'buildDefense()', 'upgradeTower()', 'spawnPack()', 'drawMap()', 'drawMonster(m)']:
         assert symbol in HTML
+
+
+def test_room_corridor_visual_markers_present():
+    for token in ['#172039', '#1B2745', '#1E1C2D', '#2A263D', '#A66A2D', '#C2873C', '#64F090', '#FF4D5D']:
+        assert token in HTML
+    assert 'doorShake' in HTML
+    assert 'bedGlow' in HTML
 
 
 def test_html_has_single_script_and_canvas():
@@ -49,6 +65,7 @@ def test_html_has_single_script_and_canvas():
     assert HTML.count('<script>') == 1
     assert HTML.count('</script>') == 1
     assert HTML.count('<div id="bottomBar"') == 1
+
 
 def test_overlay_does_not_block_in_game_bottom_controls():
     assert '#ui{ position:absolute; inset:0;' in HTML
@@ -70,4 +87,3 @@ def test_inline_javascript_parses_with_node():
         subprocess.run(['node', '--check', name], check=True, capture_output=True, text=True)
     finally:
         Path(name).unlink(missing_ok=True)
-
